@@ -1,0 +1,4 @@
+.vscode/
+.env
+*.epub
+epub_reader_old.py

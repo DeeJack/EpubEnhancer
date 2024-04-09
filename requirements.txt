@@ -1,0 +1,6 @@
+ebooklib
+bs4
+openai
+python-dotenv
+nltk
+tiktoken
