@@ -54,6 +54,13 @@ def estimate_price(text: str):
     price = (num_tokens / 1000) * 0.0005 # 0.0005 per 1000 tokens
     return price
 
+def format_time(seconds):
+    if seconds < 60:
+        return f"{seconds:.2f}s"
+    elif seconds < 3600:
+        return f"{seconds // 60}m {seconds % 60:.2f}s"
+    else:
+        return f"{seconds // 3600}h {(seconds % 3600) // 60}m {seconds % 60:.2f}s"
 
 if __name__ == '__main__':
     """System prompt for GPT"""
@@ -196,4 +203,4 @@ if __name__ == '__main__':
             epub.write_epub(options['output'] + 'temp.epub', book, {})
 
     epub.write_epub(options['output'], book, {}) # Write the epub to the output file
-    print(f"Time taken: {time.time() - start_time}s")
+    print(f"Time taken: {format_time(time.time() - start_time)}")
