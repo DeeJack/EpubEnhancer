@@ -54,14 +54,14 @@ def estimate_price(text: str):
     price = (num_tokens / 1000) * 0.0005 # 0.0005 per 1000 tokens
     return price
 
-"""System prompt for GPT"""
-editor_prompt = "From now on you'll act as an editor. \\\
-                You will be given some text extracted from a book which was machine translated. \\\
-                    Your job is to correct the text and make it sound as natural as possible. \\\
-                    You cannot change the story itself.\\\
-                    Keep the length of the chapter about the same."
 
 if __name__ == '__main__':
+    """System prompt for GPT"""
+    editor_prompt = ""
+    
+    with open("system_prompt.txt", "r") as f:
+        editor_prompt = f.read()
+    
     """
         Make sure that the arguments are passed correctly.
         The program requires:
