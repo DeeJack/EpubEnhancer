@@ -1,3 +1,4 @@
+import re
 import time
 import ebooklib
 from ebooklib import epub
@@ -10,7 +11,7 @@ import nltk
 import tiktoken
 
 load_dotenv()
-nltk.download('punkt')
+nltk.download('punkt', quiet=True)
 
 epub_name = "test.epub"
 DEBUG = True
@@ -51,7 +52,7 @@ def split_text_into_chunks(text, max_tokens=4000):
 def estimate_price(text: str):
     """Estimates the price for a text completion."""
     num_tokens = num_tokens_from_string(text) * options['number']
-    price = (num_tokens / 1000) * 0.0005 # 0.0005 per 1000 tokens
+    price = (num_tokens / 1000) * 0.0005 # 0.0005€ per 1000 tokens
     return price
 
 def format_time(seconds):
@@ -99,9 +100,9 @@ if __name__ == '__main__':
     options = {
         'filename': args.filename,
         'output': args.output or f"{args.filename}_enhanced.epub",
-        'start': args.start - 1,
+        'start': args.start,
         'number': args.number,
-        'end_chapter': args.start + args.number - 1,
+        'end_chapter': args.start + args.number,
     }
     printDebug(options)
 
@@ -145,10 +146,13 @@ if __name__ == '__main__':
     """
         Estimate the price and ask the user if they want to continue
     """
-    first_chapter = chapters[0]
-    first_chapter_text = bs.BeautifulSoup(
+    first_chapter = chapters[options['start']]
+    first_chapter_html = bs.BeautifulSoup(
         first_chapter.get_content(), "html.parser"
-    ).get_text()
+    )
+    first_chapter_text = first_chapter_html.find_all('p')
+    first_chapter_text = '\n'.join([str(paragraph) for paragraph in first_chapter_text])
+    printDebug(first_chapter_text)
     estimated_price = estimate_price(first_chapter_text)
     print(f"Estimated price for the first chapter: €{estimated_price}")
     response = input('Do you want to continue? [Y/n]')
@@ -160,17 +164,20 @@ if __name__ == '__main__':
     index = 0
     count = 1
     start_time = time.time()
-    printDebug('Starting processing chapters, from chapter', options['start'] + 1, 'to', options['end_chapter'])
+    printDebug('Starting processing chapters, from chapter', options['start'], 'to', options['end_chapter'] - 1)
     for chapter_index in range(options['start'], options['end_chapter']):
         chapter = chapters[chapter_index]
         content = chapter.get_content()  # Get the HTML content for the chapter
-        print('Got content for chapter', chapter_index + 1)
-        text = bs.BeautifulSoup(
+        print('Got content for chapter', chapter_index)
+        chapter_html = bs.BeautifulSoup(
             content, "html.parser"
-        ).get_text()  # Parse the html and get only the text
+        )
+        current_chapter_text = chapter_html.find_all('p')
+        current_chapter_text = '\n'.join([str(paragraph) for paragraph in current_chapter_text])
+        
         printDebug('Parsed content, sending request')
 
-        text_chunks = split_text_into_chunks(text) # Split the text into chunks of max 4000 tokens
+        text_chunks = split_text_into_chunks(current_chapter_text) # Split the text into chunks of max 4000 tokens
         chapter_text_chunks = []
 
         for text_chunk in text_chunks:
@@ -185,7 +192,7 @@ if __name__ == '__main__':
                         "content": text_chunk,
                     }
                 ],
-                model="gpt-3.5-turbo-0125",
+                model="gpt-3.5-turbo",
                 stream=True,
                 max_tokens=4000, # 0.001$ per 1000 tokens input, 0.002$ per 1000 tokens output
             )
@@ -195,12 +202,16 @@ if __name__ == '__main__':
                     chapter_text_chunks.append(chunk.choices[0].delta.content)
 
         chapter_text = ''.join(chapter_text_chunks) # Join the chunks back together
-        chapter_text = chapter_text.replace('\n', '</p><p>')
-        chapter_text = chapter_text.replace('\\n', '</p><p>')
+        printDebug(chapter_text)
+        # chapter_text = chapter_text.replace('\.[^"]', '.\n')
+        # Use regex
+        # regex = re.compile(r'\.[^"]')
+        # chapter_text = regex.sub('.\n', chapter_text)
+        # chapter_text = chapter_text.replace('\n', '</p><p>')
+        # chapter_text = chapter_text.replace('\\n', '</p><p>')
         chapter.set_content(chapter_text) # Set the new content for the chapter in the epub
         count += 1
-        if count % 10: # Every 10 chapter, backup
-            epub.write_epub(options['output'] + 'temp.epub', book, {})
+        epub.write_epub(options['output'] + '_temp.epub', book, {}) # Backup
 
     epub.write_epub(options['output'], book, {}) # Write the epub to the output file
     print(f"Time taken: {format_time(time.time() - start_time)}")
