@@ -11,23 +11,27 @@ import nltk
 import tiktoken
 
 load_dotenv()
-nltk.download('punkt', quiet=True)
+nltk.download("punkt", quiet=True)
 
 epub_name = "test.epub"
 DEBUG = True
-MAX_FILENAME_LENGTH = 255 # Max length in linux and windows is about the same
+MAX_FILENAME_LENGTH = 255  # Max length in linux and windows is about the same
+
 
 def is_filename_too_long(filename, max_length):
     return len(os.path.abspath(filename)) > max_length
+
 
 def printDebug(text, *args):
     if DEBUG:
         print(text, *args)
 
+
 def num_tokens_from_string(string: str) -> int:
     """Returns the number of tokens in a text string."""
     num_tokens = len(encoding.encode(string))
     return num_tokens
+
 
 def split_text_into_chunks(text, max_tokens=4000):
     """Splits a text into chunks of max_tokens tokens."""
@@ -39,21 +43,32 @@ def split_text_into_chunks(text, max_tokens=4000):
     for sentence in sentences:
         sentence_tokens = num_tokens_from_string(sentence)
         if current_chunk_tokens + sentence_tokens > max_tokens:
-            chunks.append(' '.join(current_chunk))
+            chunks.append(" ".join(current_chunk))
             current_chunk = [sentence]
             current_chunk_tokens = sentence_tokens
         else:
             current_chunk.append(sentence)
             current_chunk_tokens += sentence_tokens
 
-    chunks.append(' '.join(current_chunk))  # append the last chunk
+    chunks.append(" ".join(current_chunk))  # append the last chunk
     return chunks
 
-def estimate_price(text: str):
+
+def estimate_price_from_string(text: str):
     """Estimates the price for a text completion."""
-    num_tokens = num_tokens_from_string(text) * options['number']
-    price = (num_tokens / 1000) * 0.0005 # 0.0005€ per 1000 tokens
+    num_tokens = num_tokens_from_string(text) * options["number"]
+    price = (num_tokens / 1000) * 0.0005  # 0.0005€ per 1000 tokens
     return price
+
+
+def estimate_total_price():
+    """Estimates the total price for all the chapters."""
+    total_price = 0
+    for chapter in chapters[options["start"] : options["end_chapter"]]:
+        chapter_text = chapter.get_content()
+        total_price += estimate_price_from_string(chapter_text)
+    return total_price
+
 
 def format_time(seconds):
     if seconds < 60:
@@ -63,13 +78,14 @@ def format_time(seconds):
     else:
         return f"{seconds // 3600}h {(seconds % 3600) // 60}m {seconds % 60:.2f}s"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     """System prompt for GPT"""
     editor_prompt = ""
-    
+
     with open("system_prompt.txt", "r") as f:
         editor_prompt = f.read()
-    
+
     """
         Make sure that the arguments are passed correctly.
         The program requires:
@@ -87,35 +103,43 @@ if __name__ == '__main__':
         usage="%(prog)s <filename.epub>",
     )
 
-    parser.add_argument('filename', help='Epub file to read')
-    parser.add_argument('-o', '--output', help='Output file name')
-    parser.add_argument('-s', '--start', type=int, default=1, help='Start from this chapter n (from 1)')
-    parser.add_argument('-n', '--number', type=int, default=0, help='Number of chapters to process (0: all)')
+    parser.add_argument("filename", help="Epub file to read")
+    parser.add_argument("-o", "--output", help="Output file name")
+    parser.add_argument(
+        "-s", "--start", type=int, default=1, help="Start from this chapter n (from 1)"
+    )
+    parser.add_argument(
+        "-n",
+        "--number",
+        type=int,
+        default=0,
+        help="Number of chapters to process (0: all)",
+    )
 
     args = parser.parse_args()
-    
+
     """
         Compute the last chapter, set the starting chapter on a 0-based index
     """
     options = {
-        'filename': args.filename,
-        'output': args.output or f"{args.filename}_enhanced.epub",
-        'start': args.start,
-        'number': args.number,
-        'end_chapter': args.start + args.number,
+        "filename": args.filename,
+        "output": args.output or f"{args.filename.replace('.epub', '')}_enhanced.epub",
+        "start": args.start,
+        "number": args.number,
+        "end_chapter": args.start + args.number,
     }
     printDebug(options)
 
-    if options['start'] < 1:
+    if options["start"] < 1:
         print("Start chapter must be greater than 0")
         exit(1)
 
-    if options['number'] < 1:
+    if options["number"] < 1:
         print("Number of chapters must be greater than 0")
         exit(1)
-        
+
     # Check if the output filename is too long (max 255 characters in linux and windows)
-    if is_filename_too_long(options['output'], MAX_FILENAME_LENGTH): 
+    if is_filename_too_long(options["output"], MAX_FILENAME_LENGTH):
         print("Output filename is too long")
         exit(1)
 
@@ -123,9 +147,9 @@ if __name__ == '__main__':
         Load the epub file.
     """
     try:
-        book = epub.read_epub(options.get('filename'))
+        book = epub.read_epub(options.get("filename"))
     except:
-        print("Couldn't open the epub file")
+        print("Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)")
         exit(1)
 
     """
@@ -136,48 +160,48 @@ if __name__ == '__main__':
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
     except:
-        print("Couldn't connect to OpenAI")
+        print("Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?")
         exit(1)
-        
+
     # Get all the chapters
     chapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
-    encoding = tiktoken.encoding_for_model('gpt-3.5-turbo')
-    
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+
     """
         Estimate the price and ask the user if they want to continue
     """
-    first_chapter = chapters[options['start']]
-    first_chapter_html = bs.BeautifulSoup(
-        first_chapter.get_content(), "html.parser"
-    )
-    first_chapter_text = first_chapter_html.find_all('p')
-    first_chapter_text = '\n'.join([str(paragraph) for paragraph in first_chapter_text])
-    printDebug(first_chapter_text)
-    estimated_price = estimate_price(first_chapter_text)
-    print(f"Estimated price for the first chapter: €{estimated_price}")
-    response = input('Do you want to continue? [Y/n]')
-    
-    if response.lower() != 'y':
+    estimated_price = estimate_total_price()
+    print(f"Estimated price: €{estimated_price}")
+    response = input("Do you want to continue? [Y/n]")
+
+    if response.lower() != "y":
         print("Exiting...")
-        exit(0)    
-    
+        exit(0)
+
     index = 0
     count = 1
     start_time = time.time()
-    printDebug('Starting processing chapters, from chapter', options['start'], 'to', options['end_chapter'] - 1)
-    for chapter_index in range(options['start'], options['end_chapter']):
+    printDebug(
+        "Starting processing chapters, from chapter",
+        options["start"],
+        "to",
+        options["end_chapter"] - 1,
+    )
+    for chapter_index in range(options["start"], options["end_chapter"]):
         chapter = chapters[chapter_index]
         content = chapter.get_content()  # Get the HTML content for the chapter
-        print('Got content for chapter', chapter_index)
-        chapter_html = bs.BeautifulSoup(
-            content, "html.parser"
+        print("Got content for chapter", chapter_index)
+        chapter_html = bs.BeautifulSoup(content, "html.parser")
+        current_chapter_text = chapter_html.find_all("p")
+        current_chapter_text = "\n".join(
+            [str(paragraph) for paragraph in current_chapter_text]
         )
-        current_chapter_text = chapter_html.find_all('p')
-        current_chapter_text = '\n'.join([str(paragraph) for paragraph in current_chapter_text])
-        
-        printDebug('Parsed content, sending request')
 
-        text_chunks = split_text_into_chunks(current_chapter_text) # Split the text into chunks of max 4000 tokens
+        printDebug("Parsed content, sending request")
+
+        text_chunks = split_text_into_chunks(
+            current_chapter_text
+        )  # Split the text into chunks of max 4000 tokens
         chapter_text_chunks = []
 
         for text_chunk in text_chunks:
@@ -190,18 +214,22 @@ if __name__ == '__main__':
                     {
                         "role": "user",
                         "content": text_chunk,
-                    }
+                    },
                 ],
                 model="gpt-3.5-turbo",
                 stream=True,
-                max_tokens=4000, # 0.001$ per 1000 tokens input, 0.002$ per 1000 tokens output
+                max_tokens=4000,  # 0.001$ per 1000 tokens input, 0.002$ per 1000 tokens output
             )
 
             for chunk in response:
-                if len(chunk.choices) > 0 and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                if (
+                    len(chunk.choices) > 0
+                    and chunk.choices[0].delta
+                    and chunk.choices[0].delta.content
+                ):
                     chapter_text_chunks.append(chunk.choices[0].delta.content)
 
-        chapter_text = ''.join(chapter_text_chunks) # Join the chunks back together
+        chapter_text = "".join(chapter_text_chunks)  # Join the chunks back together
         printDebug(chapter_text)
         # chapter_text = chapter_text.replace('\.[^"]', '.\n')
         # Use regex
@@ -209,9 +237,13 @@ if __name__ == '__main__':
         # chapter_text = regex.sub('.\n', chapter_text)
         # chapter_text = chapter_text.replace('\n', '</p><p>')
         # chapter_text = chapter_text.replace('\\n', '</p><p>')
-        chapter.set_content(chapter_text) # Set the new content for the chapter in the epub
+        chapter.set_content(
+            chapter_text
+        )  # Set the new content for the chapter in the epub
         count += 1
-        epub.write_epub(options['output'] + '_temp.epub', book, {}) # Backup
+        epub.write_epub(
+            options["output"].replace(".epub", "") + "_temp.epub", book, {}
+        )  # Backup
 
-    epub.write_epub(options['output'], book, {}) # Write the epub to the output file
+    epub.write_epub(options["output"], book, {})  # Write the epub to the output file
     print(f"Time taken: {format_time(time.time() - start_time)}")
