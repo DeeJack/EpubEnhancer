@@ -14,7 +14,7 @@ load_dotenv()
 nltk.download("punkt", quiet=True)
 
 epub_name = "test.epub"
-DEBUG = True
+DEBUG = False
 MAX_FILENAME_LENGTH = 255  # Max length in linux and windows is about the same
 
 
