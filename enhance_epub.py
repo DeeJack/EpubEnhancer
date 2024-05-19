@@ -54,10 +54,21 @@ def split_text_into_chunks(text, max_tokens=4000):
     return chunks
 
 
+def get_text_from_chapter(chapter):
+    """Returns the text from a chapter."""
+    content = chapter.get_content()
+    chapter_html = bs.BeautifulSoup(content, "html.parser")
+    current_chapter_text = chapter_html.find_all("p")
+    current_chapter_text = "\n".join(
+        [str(paragraph) for paragraph in current_chapter_text]
+    )
+    return current_chapter_text
+
+
 def estimate_price_from_string(text: str):
     """Estimates the price for a text completion."""
-    num_tokens = num_tokens_from_string(text) * options["number"]
-    price = (num_tokens / 1000) * 0.0005  # 0.0005€ per 1000 tokens
+    num_tokens = num_tokens_from_string(text)
+    price = ((num_tokens / 1000) * 0.0005) + ((num_tokens / 1000) * 0.0015)  # 0.0005€ per 1000 tokens in input, 0.0015€ per 1000 tokens in output
     return price
 
 
@@ -65,7 +76,7 @@ def estimate_total_price():
     """Estimates the total price for all the chapters."""
     total_price = 0
     for chapter in chapters[options["start"] : options["end_chapter"]]:
-        chapter_text = chapter.get_content()
+        chapter_text = get_text_from_chapter(chapter)
         total_price += estimate_price_from_string(chapter_text)
     return total_price
 
@@ -149,7 +160,9 @@ if __name__ == "__main__":
     try:
         book = epub.read_epub(options.get("filename"))
     except:
-        print("Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)")
+        print(
+            "Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)"
+        )
         exit(1)
 
     """
@@ -160,7 +173,9 @@ if __name__ == "__main__":
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
     except:
-        print("Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?")
+        print(
+            "Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?"
+        )
         exit(1)
 
     # Get all the chapters
@@ -189,13 +204,15 @@ if __name__ == "__main__":
     )
     for chapter_index in range(options["start"], options["end_chapter"]):
         chapter = chapters[chapter_index]
-        content = chapter.get_content()  # Get the HTML content for the chapter
+        # content = chapter.get_content()  # Get the HTML content for the chapter
         print("Got content for chapter", chapter_index)
-        chapter_html = bs.BeautifulSoup(content, "html.parser")
-        current_chapter_text = chapter_html.find_all("p")
-        current_chapter_text = "\n".join(
-            [str(paragraph) for paragraph in current_chapter_text]
-        )
+        # chapter_html = bs.BeautifulSoup(content, "html.parser")
+        # current_chapter_text = chapter_html.find_all("p")
+        # current_chapter_text = "\n".join(
+        #     [str(paragraph) for paragraph in current_chapter_text]
+        # )
+
+        current_chapter_text = get_text_from_chapter(chapter)
 
         printDebug("Parsed content, sending request")
 
