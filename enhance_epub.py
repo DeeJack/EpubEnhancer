@@ -11,6 +11,11 @@ import nltk
 import tiktoken
 from tqdm import tqdm
 
+# Suppress warnings from the epub library
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='ebooklib')
+warnings.filterwarnings("ignore", category=FutureWarning, module='ebooklib')
+
 load_dotenv()
 nltk.download("punkt", quiet=True)
 
