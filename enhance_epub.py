@@ -194,7 +194,7 @@ if __name__ == "__main__":
         Estimate the price and ask the user if they want to continue
     """
     estimated_price = estimate_total_price()
-    print(f"Estimated price: €{estimated_price}")
+    print(f"Estimated price: €{estimated_price:.2f}")
     response = input("Do you want to continue? [Y/n]")
 
     if response.lower() != "y":
