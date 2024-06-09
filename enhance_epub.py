@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import argparse
 import nltk
 import tiktoken
+from tqdm import tqdm
 
 load_dotenv()
 nltk.download("punkt", quiet=True)
@@ -68,7 +69,9 @@ def get_text_from_chapter(chapter):
 def estimate_price_from_string(text: str):
     """Estimates the price for a text completion."""
     num_tokens = num_tokens_from_string(text)
-    price = ((num_tokens / 1000) * 0.0005) + ((num_tokens / 1000) * 0.0015)  # 0.0005€ per 1000 tokens in input, 0.0015€ per 1000 tokens in output
+    price = ((num_tokens / 1000) * 0.0005) + (
+        (num_tokens / 1000) * 0.0015
+    )  # 0.0005€ per 1000 tokens in input, 0.0015€ per 1000 tokens in output
     return price
 
 
@@ -202,15 +205,11 @@ if __name__ == "__main__":
         "to",
         options["end_chapter"] - 1,
     )
-    for chapter_index in range(options["start"], options["end_chapter"]):
+    for chapter_index in tqdm(
+            range(options["start"], 
+                    options["end_chapter"])):
         chapter = chapters[chapter_index]
-        # content = chapter.get_content()  # Get the HTML content for the chapter
-        print("Got content for chapter", chapter_index)
-        # chapter_html = bs.BeautifulSoup(content, "html.parser")
-        # current_chapter_text = chapter_html.find_all("p")
-        # current_chapter_text = "\n".join(
-        #     [str(paragraph) for paragraph in current_chapter_text]
-        # )
+        printDebug("Processing chapter", chapter_index)
 
         current_chapter_text = get_text_from_chapter(chapter)
 
@@ -248,12 +247,6 @@ if __name__ == "__main__":
 
         chapter_text = "".join(chapter_text_chunks)  # Join the chunks back together
         printDebug(chapter_text)
-        # chapter_text = chapter_text.replace('\.[^"]', '.\n')
-        # Use regex
-        # regex = re.compile(r'\.[^"]')
-        # chapter_text = regex.sub('.\n', chapter_text)
-        # chapter_text = chapter_text.replace('\n', '</p><p>')
-        # chapter_text = chapter_text.replace('\\n', '</p><p>')
         chapter.set_content(
             chapter_text
         )  # Set the new content for the chapter in the epub
