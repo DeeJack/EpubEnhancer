@@ -239,7 +239,7 @@ if __name__ == "__main__":
                 ],
                 model="gpt-3.5-turbo",
                 stream=True,
-                max_tokens=4000,  # 0.001$ per 1000 tokens input, 0.002$ per 1000 tokens output
+                # max_tokens=4000,  # 0.001$ per 1000 tokens input, 0.002$ per 1000 tokens output
             )
 
             for chunk in response:
@@ -261,4 +261,7 @@ if __name__ == "__main__":
         )  # Backup
 
     epub.write_epub(options["output"], book, {})  # Write the epub to the output file
+    current_dir = os.curdir
+    temp_file = os.path.join(current_dir, options["output"].replace(".epub", "") + "_temp.epub")
+    os.remove(temp_file)
     print(f"Time taken: {format_time(time.time() - start_time)}")
