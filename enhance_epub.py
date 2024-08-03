@@ -117,7 +117,7 @@ if __name__ == "__main__":
     """
 
     parser = argparse.ArgumentParser(
-        description="Read an epub machine translated book and rewrite it with better grammar using GPT-3.5",
+        description="Read an epub machine translated book and rewrite it with better grammar using GPT-4o-mini",
         prog="Epub Enhancer",
         usage="%(prog)s <filename.epub>",
     )
@@ -190,6 +190,10 @@ if __name__ == "__main__":
     chapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
     encoding = tiktoken.encoding_for_model("gpt-4o-mini")
     
+    if options["end_chapter"] > len(chapters):
+        print(f"Ending chapter\'s number is higher than the number of chapters: {options["end_chapter"]}/{len(chapters)}")
+        exit(1)
+    
     # Print the disclaimer
     with open('disclaimer.txt', "r") as disclaimer:
         print(disclaimer.read())
@@ -198,7 +202,7 @@ if __name__ == "__main__":
         Estimate the price and ask the user if they want to continue
     """
     estimated_price = estimate_total_price()
-    print(f"Estimated price: €{estimated_price:.2f}")
+    print(f"Estimated price [from c{options["start"]} to c{options["end_chapter"]}]: €{estimated_price:.2f}")
     response = input("Do you want to continue? [Y/n]")
 
     if response.lower() != "y":
