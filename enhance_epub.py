@@ -188,7 +188,11 @@ if __name__ == "__main__":
 
     # Get all the chapters
     chapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    encoding = tiktoken.encoding_for_model("gpt-4o-mini")
+    
+    # Print the disclaimer
+    with open('disclaimer.txt', "r") as disclaimer:
+        print(disclaimer.read())
 
     """
         Estimate the price and ask the user if they want to continue

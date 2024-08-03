@@ -6,9 +6,16 @@ A python script to fix the grammar for Machine Translated (or simply books with 
 
 It uses the GPT API to rewrite the chapters in a correct, or at least readable, grammar.
 
-Remember that the GPT API are NOT free. You are paying for each chapter.
+## Disclaimer
 
-Other disclaimer: the results are not perfect, not even nearly. I tried to come up with different system prompts, but I couldn't find a prompt that actually fixes everything without removing details from the story.
+Remember that the GPT API are NOT free. You are paying for each character! The initial estimate given is an **ESTIMATE** using tiktoken, it may be not accurate!
+Use with caution, and try to divide the book in batches to be sure.
+
+The results are not perfect, not even nearly. I tried to come up with different system prompts, but I couldn't find a prompt that actually fixes everything without removing details from the story.
+
+I don't take any responsability for what you do with the program. Everything is sent to OpenAI for the processing, so don't send sensitive/copyrighted stuff.
+
+I didn't have any problem with the program, but it's still possible the presence of bugs that cause an infinite loop. Set a limit in the OpenAI key to be sure, and keep track of what the program is doing with the tqdm bar. Stop the program with CTRL+C if you think something is wrong. A backup is created at each chapter processed, so you don't lose any progress.
 
 ## Requirements
 
@@ -29,7 +36,7 @@ And replace `INSERT_KEY_HERE` with your OpenAI's API key.
 
 `python epub_reader.py test.epub -o output.epub -s 1 -n 10`
 
-Explanation: fix file `test.epub`, output to file `output.epub`, starting from chapter 1 (included), and fix 10 chapters (so until chapter 10).
+Explanation: fix file `test.epub` (path of the file), output to file `output.epub`, starting from chapter 1 (included), and fix 10 chapters (so until chapter 10).
 
 ## Result
 
