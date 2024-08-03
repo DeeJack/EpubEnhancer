@@ -1,10 +1,14 @@
 # EpubEnhancer
 
-A python script to fix the grammar for Machine Translated epubs.
+Rewrite badly-written epub books with the GPT APIs.
+
+A python script to fix the grammar for Machine Translated (or simply books with bad writing) epubs, using GPT-4o-mini (or any model from OpenAI).
 
 It uses the GPT API to rewrite the chapters in a correct, or at least readable, grammar.
 
 Remember that the GPT API are NOT free. You are paying for each chapter.
+
+Other disclaimer: the results are not perfect, not even nearly. I tried to come up with different system prompts, but I couldn't find a prompt that actually fixes everything without removing details from the story.
 
 ## Requirements
 
@@ -24,6 +28,8 @@ And replace `INSERT_KEY_HERE` with your OpenAI's API key.
 ### Example command
 
 `python epub_reader.py test.epub -o output.epub -s 1 -n 10`
+
+Explanation: fix file `test.epub`, output to file `output.epub`, starting from chapter 1 (included), and fix 10 chapters (so until chapter 10).
 
 ## Result
 

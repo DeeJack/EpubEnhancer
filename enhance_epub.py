@@ -237,7 +237,7 @@ if __name__ == "__main__":
                         "content": text_chunk,
                     },
                 ],
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 stream=True,
                 # max_tokens=4000,  # 0.001$ per 1000 tokens input, 0.002$ per 1000 tokens output
             )
