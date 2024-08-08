@@ -68,6 +68,8 @@ def get_text_from_chapter(chapter):
     current_chapter_text = "\n".join(
         [str(paragraph) for paragraph in current_chapter_text]
     )
+    if current_chapter_text.strip() == '':
+        current_chapter_text = chapter_html.find('body').text
     return current_chapter_text
 
 
@@ -202,7 +204,7 @@ if __name__ == "__main__":
         Estimate the price and ask the user if they want to continue
     """
     estimated_price = estimate_total_price()
-    print(f"Estimated price [from c{options["start"]} to c{options["end_chapter"]}]: €{estimated_price:.2f}")
+    print(f"Estimated price [from c{options["start"]} to c{options["end_chapter"] - 1}]: €{estimated_price:.2f}")
     response = input("Do you want to continue? [Y/n]")
 
     if response.lower() != "y":
