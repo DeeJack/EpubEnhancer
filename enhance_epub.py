@@ -1,4 +1,6 @@
-import re
+print('Initializing...')
+
+
 import time
 import ebooklib
 from ebooklib import epub
@@ -117,6 +119,8 @@ if __name__ == "__main__":
         Example:
         python epub_reader.py test.epub -o output.epub -s 1 -n 10
     """
+    
+    print('Parsing arguments...')
 
     parser = argparse.ArgumentParser(
         description="Read an epub machine translated book and rewrite it with better grammar using GPT-4o-mini",
@@ -163,6 +167,8 @@ if __name__ == "__main__":
     if is_filename_too_long(options["output"], MAX_FILENAME_LENGTH):
         print("Output filename is too long")
         exit(1)
+        
+    print('Arguments parsed, starting the process...')
 
     """
         Load the epub file.
@@ -174,6 +180,8 @@ if __name__ == "__main__":
             "Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)"
         )
         exit(1)
+        
+    print('Book opened successfully.')
 
     """
         Connect to OpenAI
@@ -187,13 +195,15 @@ if __name__ == "__main__":
             "Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?"
         )
         exit(1)
+        
+    print('Connection to OpenAI successful.')
 
     # Get all the chapters
     chapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
     encoding = tiktoken.encoding_for_model("gpt-4o-mini")
     
     if options["end_chapter"] > len(chapters):
-        print(f"Ending chapter\'s number is higher than the number of chapters: {options["end_chapter"]}/{len(chapters)}")
+        print(f"Ending chapter\'s number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}")
         exit(1)
     
     # Print the disclaimer
@@ -204,7 +214,7 @@ if __name__ == "__main__":
         Estimate the price and ask the user if they want to continue
     """
     estimated_price = estimate_total_price()
-    print(f"Estimated price [from c{options["start"]} to c{options["end_chapter"] - 1}]: €{estimated_price:.2f}")
+    print(f"Estimated price [from c{options['start']} to c{options['end_chapter'] - 1}]: €{estimated_price:.2f}")
     response = input("Do you want to continue? [Y/n]")
 
     if response.lower() != "y":
@@ -214,12 +224,10 @@ if __name__ == "__main__":
     index = 0
     count = 1
     start_time = time.time()
-    printDebug(
-        "Starting processing chapters, from chapter",
-        options["start"],
-        "to",
-        options["end_chapter"] - 1,
+    print(
+        f"Starting processing chapters, from chapter {options['start']} to {options['end_chapter'] - 1}."
     )
+    
     for chapter_index in tqdm(
             range(options["start"], 
                     options["end_chapter"])):
