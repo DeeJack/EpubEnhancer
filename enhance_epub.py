@@ -1,5 +1,8 @@
-print('Initializing...')
+from rich.console import Console
 
+console = Console()
+
+console.print('[cyan]Initializing...')
 
 import time
 import ebooklib
@@ -120,7 +123,7 @@ if __name__ == "__main__":
         python epub_reader.py test.epub -o output.epub -s 1 -n 10
     """
     
-    print('Parsing arguments...')
+    console.print('[cyan]Parsing arguments...')
 
     parser = argparse.ArgumentParser(
         description="Read an epub machine translated book and rewrite it with better grammar using GPT-4o-mini",
@@ -156,19 +159,19 @@ if __name__ == "__main__":
     printDebug(options)
 
     if options["start"] < 1:
-        print("Start chapter must be greater than 0")
+        console.print("[red]Start chapter must be greater than 0")
         exit(1)
 
     if options["number"] < 1:
-        print("Number of chapters must be greater than 0")
+        console.print("[red]Number of chapters must be greater than 0")
         exit(1)
 
     # Check if the output filename is too long (max 255 characters in linux and windows)
     if is_filename_too_long(options["output"], MAX_FILENAME_LENGTH):
-        print("Output filename is too long")
+        console.print("[red]Output filename is too long")
         exit(1)
         
-    print('Arguments parsed, starting the process...')
+    console.print('[green]Arguments parsed, starting the process...')
 
     """
         Load the epub file.
@@ -176,12 +179,12 @@ if __name__ == "__main__":
     try:
         book = epub.read_epub(options.get("filename"))
     except:
-        print(
-            "Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)"
+        console.print(
+            "[red]Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)"
         )
         exit(1)
         
-    print('Book opened successfully.')
+    console.print('[green]Book opened successfully.')
 
     """
         Connect to OpenAI
@@ -191,19 +194,19 @@ if __name__ == "__main__":
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
     except:
-        print(
-            "Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?"
+        console.print(
+            "[red]Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?"
         )
         exit(1)
         
-    print('Connection to OpenAI successful.')
+    console.print('[green]Connection to OpenAI successful.')
 
     # Get all the chapters
     chapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
     encoding = tiktoken.encoding_for_model("gpt-4o-mini")
     
     if options["end_chapter"] > len(chapters):
-        print(f"Ending chapter\'s number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}")
+        console.print(f"[red]Ending chapter\'s number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}")
         exit(1)
     
     # Print the disclaimer
@@ -214,18 +217,18 @@ if __name__ == "__main__":
         Estimate the price and ask the user if they want to continue
     """
     estimated_price = estimate_total_price()
-    print(f"Estimated price [from c{options['start']} to c{options['end_chapter'] - 1}]: €{estimated_price:.2f}")
+    console.print(f"Estimated price [from c{options['start']} to c{options['end_chapter'] - 1}]: [red]€{estimated_price:.2f}")
     response = input("Do you want to continue? [Y/n]")
 
     if response.lower() != "y":
-        print("Exiting...")
+        console.print("[yellow]Exiting...")
         exit(0)
 
     index = 0
     count = 1
     start_time = time.time()
-    print(
-        f"Starting processing chapters, from chapter {options['start']} to {options['end_chapter'] - 1}."
+    console.print(
+        f"[green]Starting processing chapters, from chapter {options['start']} to {options['end_chapter'] - 1}."
     )
     
     for chapter_index in tqdm(
@@ -282,4 +285,4 @@ if __name__ == "__main__":
     current_dir = os.curdir
     temp_file = os.path.join(current_dir, options["output"].replace(".epub", "") + "_temp.epub")
     os.remove(temp_file)
-    print(f"Time taken: {format_time(time.time() - start_time)}")
+    console.print(f"[cyan]Time taken: {format_time(time.time() - start_time)}")

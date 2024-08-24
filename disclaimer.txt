@@ -5,4 +5,4 @@ The results are not perfect, not even nearly. I tried to come up with different 
 
 I don't take any responsability for what you do with the program. Everything is sent to OpenAI for the processing, so don't send sensitive/copyrighted stuff.
 
-I didn't have any problem with the program, but it's still possible the presence of bugs that cause an infinite loop. Set a limit in the OpenAI key to be sure, and keep track of what the program is doing with the tqdm bar. Stop the program with CTRL+C if you think something is wrong. A backup is created at each chapter processed, so you don't lose any progress.
+I didn't have any problem with the program, but it's still possible the presence of bugs that cause an infinite loop. Set a limit in the OpenAI key to be sure, and keep track of what the program is doing with the tqdm bar. Stop the program with CTRL+C if you think something is wrong. A backup is created at each chapter processed, so you shouldn't lose any progress.
