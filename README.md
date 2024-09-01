@@ -34,9 +34,11 @@ And replace `INSERT_KEY_HERE` with your OpenAI's API key.
 
 ### Example command
 
-`python epub_reader.py test.epub -o output.epub -s 1 -n 10`
+`python epub_reader.py test.epub -o output.epub -s 1 -n 10 -p "Remove all author notes"`
 
 Explanation: fix file `test.epub` (path of the file), output to file `output.epub`, starting from chapter 1 (included), and fix 10 chapters (so until chapter 10).
+
+`-p` adds text to the system prompt, so that you can customize the system prompt more easily.
 
 ## Result
 

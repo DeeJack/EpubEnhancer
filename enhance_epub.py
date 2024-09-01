@@ -87,12 +87,13 @@ def estimate_price_from_string(text: str):
     return price
 
 
-def estimate_total_price():
+def estimate_total_price(editor_prompt: str) -> float:
     """Estimates the total price for all the chapters."""
     total_price = 0
+    system_prompt_cost = estimate_price_from_string(editor_prompt)
     for chapter in chapters[options["start"] : options["end_chapter"]]:
         chapter_text = get_text_from_chapter(chapter)
-        total_price += estimate_price_from_string(chapter_text)
+        total_price += estimate_price_from_string(chapter_text) + system_prompt_cost
     return total_price
 
 
@@ -143,6 +144,13 @@ if __name__ == "__main__":
         default=0,
         help="Number of chapters to process (0: all)",
     )
+    parser.add_argument(
+        '-p',
+        '--prompt',
+        type=str,
+        default='',
+        help='Additional details for the system prompt (default: [])'
+    )
 
     args = parser.parse_args()
 
@@ -155,6 +163,7 @@ if __name__ == "__main__":
         "start": args.start,
         "number": args.number,
         "end_chapter": args.start + args.number,
+        "prompt": args.prompt or ''
     }
     printDebug(options)
 
@@ -208,6 +217,10 @@ if __name__ == "__main__":
     if options["end_chapter"] > len(chapters):
         console.print(f"[red]Ending chapter\'s number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}")
         exit(1)
+        
+    additional_prompt = options['prompt']
+    
+    system_prompt = f"{editor_prompt}\n{additional_prompt}"
     
     # Print the disclaimer
     with open('disclaimer.txt', "r") as disclaimer:
@@ -216,9 +229,9 @@ if __name__ == "__main__":
     """
         Estimate the price and ask the user if they want to continue
     """
-    estimated_price = estimate_total_price()
+    estimated_price = estimate_total_price(system_prompt)
     console.print(f"Estimated price [from c{options['start']} to c{options['end_chapter'] - 1}]: [red]€{estimated_price:.2f}")
-    response = input("Do you want to continue? [Y/n]")
+    response = input("Do you want to continue [Y/n]? ")
 
     if response.lower() != "y":
         console.print("[yellow]Exiting...")
@@ -251,7 +264,7 @@ if __name__ == "__main__":
                 messages=[
                     {
                         "role": "system",
-                        "content": editor_prompt,
+                        "content": system_prompt,
                     },
                     {
                         "role": "user",
