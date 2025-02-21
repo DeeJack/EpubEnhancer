@@ -224,6 +224,10 @@ if __name__ == "__main__":
             f"[red]Ending chapter's number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}"
         )
         exit(1)
+    
+    if options["end_chapter"] < 1 or options["end_chapter"] < options["start"]:
+        console.print("[red]Ending chapter must be greater than the starting chapter")
+        exit(1)
 
     additional_prompt = options["prompt"]
 
