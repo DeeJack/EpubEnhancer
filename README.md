@@ -6,6 +6,8 @@ A python script to fix the grammar for Machine Translated (or simply books with 
 
 It uses the GPT API to rewrite the chapters in a correct, or at least readable, grammar.
 
+You can modify the System Prompt from the [system_prompt.txt](system_prompt.txt) file
+
 ## Disclaimer
 
 Remember that the GPT API are NOT free. You are paying for each character! The initial estimate given is an **ESTIMATE** using tiktoken, it may be not accurate!
@@ -23,6 +25,7 @@ The only requirement is Python.
 
 ## Getting started
 
+[OPTIONAL] Create a virtual environment: `python -m venv .venv`, and activate it: `source .venv/Scripts/activate`
 Install the dependencies: `pip install -r requirements.txt`
 
 ### Configuration
@@ -48,18 +51,18 @@ Before:
 
 > A pure passerby couldn't stand it, and couldn't help but interject.
 >
->[Ruan Qi is kind and honest, why is he not worthy of Lin Jian? Do you think that the higher the academic qualifications, the better? ? ?]
+> [Ruan Qi is kind and honest, why is he not worthy of Lin Jian? Do you think that the higher the academic qualifications, the better? ? ?]
 >
 > [Upstairs, Ruan Qi came out to film at the age of 19, obviously not paying much attention to cultural literacy. If she is with Lin Jian and Lin Jian talks about academic topics with her parents, wouldn't she be like listening to the fairy tale? ]
 >
->[That's it. That kind of intellectual, highly educated girl is worthy of Lin Jian. Ruan Qi should find a big money.]
+> [That's it. That kind of intellectual, highly educated girl is worthy of Lin Jian. Ruan Qi should find a big money.]
 
 After:
 
->A random bystander couldn't help but intervene.
+> A random bystander couldn't help but intervene.
 >
->[Ruan Qi is kind and sincere, why isn't she on par with Lin Jian? Do you believe that higher academic qualifications make someone better?]
+> [Ruan Qi is kind and sincere, why isn't she on par with Lin Jian? Do you believe that higher academic qualifications make someone better?]
 >
->[Upstairs, Ruan Qi started acting at 19, clearly not focusing much on education. Imagine if she were with Lin Jian and they talked about academic subjects, wouldn't it be like a fairy tale for her?]
+> [Upstairs, Ruan Qi started acting at 19, clearly not focusing much on education. Imagine if she were with Lin Jian and they talked about academic subjects, wouldn't it be like a fairy tale for her?]
 >
->[Exactly. Someone intellectual and highly educated like Lin Jian deserves a girl like that. Ruan Qi should find someone wealthy.]
+> [Exactly. Someone intellectual and highly educated like Lin Jian deserves a girl like that. Ruan Qi should find someone wealthy.]
