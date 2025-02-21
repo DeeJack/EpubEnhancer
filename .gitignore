@@ -3,3 +3,4 @@
 *.epub
 epub_reader_old.py
 books/
+.venv

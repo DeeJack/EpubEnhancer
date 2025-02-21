@@ -2,7 +2,7 @@ from rich.console import Console
 
 console = Console()
 
-console.print('[cyan]Initializing...')
+console.print("[cyan]Initializing...")
 
 import time
 import ebooklib
@@ -18,11 +18,13 @@ from tqdm import tqdm
 
 # Suppress warnings from the epub library
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning, module='ebooklib')
-warnings.filterwarnings("ignore", category=FutureWarning, module='ebooklib')
+
+warnings.filterwarnings("ignore", category=UserWarning, module="ebooklib")
+warnings.filterwarnings("ignore", category=FutureWarning, module="ebooklib")
 
 load_dotenv()
 nltk.download("punkt", quiet=True)
+nltk.download("punkt_tab", quiet=True)
 
 epub_name = "test.epub"
 DEBUG = False
@@ -73,17 +75,20 @@ def get_text_from_chapter(chapter):
     current_chapter_text = "\n".join(
         [str(paragraph) for paragraph in current_chapter_text]
     )
-    if current_chapter_text.strip() == '':
-        current_chapter_text = chapter_html.find('body').text
+    if current_chapter_text.strip() == "":
+        current_chapter_text = chapter_html.find("body").text
     return current_chapter_text
 
 
 def estimate_price_from_string(text: str):
     """Estimates the price for a text completion."""
     num_tokens = num_tokens_from_string(text)
-    price = ((num_tokens / 1000) * 0.0005) + (
-        (num_tokens / 1000) * 0.0015
-    )  # 0.0005€ per 1000 tokens in input, 0.0015€ per 1000 tokens in output
+    price_per_million_tokens_input = 0.15  # 0.15$ per million token in input
+    price_per_million_tokens_output = 0.6  # 0.6$ per million token in output
+
+    price = (num_tokens / 1_000_000) * price_per_million_tokens_input + (
+        num_tokens / 1_000_000
+    ) * price_per_million_tokens_output
     return price
 
 
@@ -123,8 +128,8 @@ if __name__ == "__main__":
         Example:
         python epub_reader.py test.epub -o output.epub -s 1 -n 10
     """
-    
-    console.print('[cyan]Parsing arguments...')
+
+    console.print("[cyan]Parsing arguments...")
 
     parser = argparse.ArgumentParser(
         description="Read an epub machine translated book and rewrite it with better grammar using GPT-4o-mini",
@@ -145,11 +150,11 @@ if __name__ == "__main__":
         help="Number of chapters to process (0: all)",
     )
     parser.add_argument(
-        '-p',
-        '--prompt',
+        "-p",
+        "--prompt",
         type=str,
-        default='',
-        help='Additional details for the system prompt (default: [])'
+        default="",
+        help="Additional details for the system prompt (default: [])",
     )
 
     args = parser.parse_args()
@@ -163,7 +168,7 @@ if __name__ == "__main__":
         "start": args.start,
         "number": args.number,
         "end_chapter": args.start + args.number,
-        "prompt": args.prompt or ''
+        "prompt": args.prompt or "",
     }
     printDebug(options)
 
@@ -179,8 +184,8 @@ if __name__ == "__main__":
     if is_filename_too_long(options["output"], MAX_FILENAME_LENGTH):
         console.print("[red]Output filename is too long")
         exit(1)
-        
-    console.print('[green]Arguments parsed, starting the process...')
+
+    console.print("[green]Arguments parsed, starting the process...")
 
     """
         Load the epub file.
@@ -192,8 +197,8 @@ if __name__ == "__main__":
             "[red]Couldn't open the epub file, make sure the file exists and is a valid epub file (this may be a library issue)"
         )
         exit(1)
-        
-    console.print('[green]Book opened successfully.')
+
+    console.print("[green]Book opened successfully.")
 
     """
         Connect to OpenAI
@@ -207,30 +212,34 @@ if __name__ == "__main__":
             "[red]Couldn't connect to OpenAI, have you set the OPENAI_API_KEY environment variable?"
         )
         exit(1)
-        
-    console.print('[green]Connection to OpenAI successful.')
+
+    console.print("[green]Connection to OpenAI successful.")
 
     # Get all the chapters
     chapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
     encoding = tiktoken.encoding_for_model("gpt-4o-mini")
-    
+
     if options["end_chapter"] > len(chapters):
-        console.print(f"[red]Ending chapter\'s number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}")
+        console.print(
+            f"[red]Ending chapter's number is higher than the number of chapters: {options['end_chapter']}/{len(chapters)}"
+        )
         exit(1)
-        
-    additional_prompt = options['prompt']
-    
+
+    additional_prompt = options["prompt"]
+
     system_prompt = f"{editor_prompt}\n{additional_prompt}"
-    
+
     # Print the disclaimer
-    with open('disclaimer.txt', "r") as disclaimer:
+    with open("disclaimer.txt", "r") as disclaimer:
         print(disclaimer.read())
 
     """
         Estimate the price and ask the user if they want to continue
     """
     estimated_price = estimate_total_price(system_prompt)
-    console.print(f"Estimated price [from c{options['start']} to c{options['end_chapter'] - 1}]: [red]€{estimated_price:.2f}")
+    console.print(
+        f"Estimated price [from c{options['start']} to c{options['end_chapter'] - 1}]: [red]€{estimated_price:.2f}"
+    )
     response = input("Do you want to continue [Y/n]? ")
 
     if response.lower() != "y":
@@ -243,10 +252,8 @@ if __name__ == "__main__":
     console.print(
         f"[green]Starting processing chapters, from chapter {options['start']} to {options['end_chapter'] - 1}."
     )
-    
-    for chapter_index in tqdm(
-            range(options["start"], 
-                    options["end_chapter"])):
+
+    for chapter_index in tqdm(range(options["start"], options["end_chapter"])):
         chapter = chapters[chapter_index]
         printDebug("Processing chapter", chapter_index)
 
@@ -296,6 +303,8 @@ if __name__ == "__main__":
 
     epub.write_epub(options["output"], book, {})  # Write the epub to the output file
     current_dir = os.curdir
-    temp_file = os.path.join(current_dir, options["output"].replace(".epub", "") + "_temp.epub")
+    temp_file = os.path.join(
+        current_dir, options["output"].replace(".epub", "") + "_temp.epub"
+    )
     os.remove(temp_file)
     console.print(f"[cyan]Time taken: {format_time(time.time() - start_time)}")
