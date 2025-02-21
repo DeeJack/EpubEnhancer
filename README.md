@@ -2,11 +2,11 @@
 
 Rewrite badly-written epub books with the GPT APIs.
 
-A python script to fix the grammar for Machine Translated (or simply books with bad writing) epubs, using GPT-4o-mini (or any model from OpenAI).
+A python script to fix the grammar for Machine Translated (or simply books with bad writing) epubs, using GPT-4o-mini (or any model from OpenAI/OpenAI compatible endpoint).
 
 It uses the GPT API to rewrite the chapters in a correct, or at least readable, grammar.
 
-You can modify the System Prompt from the [system_prompt.txt](system_prompt.txt) file
+You can modify the System Prompt from the [system_prompt.txt](system_prompt.txt) file to better suit your needs.
 
 ## Disclaimer
 
